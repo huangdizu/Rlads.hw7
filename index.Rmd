@@ -1,8 +1,8 @@
 ---
-author: "未命名 B01201001 一般系"
+author: "黃柏勳 310708003 交大科管"
 title: "HW 7: Simulating Data with R"
 date: |
-  | 2021-04-15
+  | 2022-05-30
   |
   | [Rmd Source (for TAs)](./index.Rmd){download='`r basename(getwd())`.Rmd'}
 output:
@@ -42,13 +42,33 @@ library(ggplot2)
 
 checkNormality <- function(x) {
   #### Finish this function (you can use the template below) ####
-  bins <- length(x)  # 自動依據 x 計算長條數量
-    
+  x_seq <- seq(min(x), max(x), by = 0.01)
+  y <- dnorm(x_seq, mean = mean(x), sd = sd(x))
+  norm <- data.frame(x = x_seq, y = y)
+
+  bin_count = ceiling(log2(length(x))) + 1
+  bin_width = (max(x) - min(x)) / bin_count
+
   plt <- ggplot() +
-    geom_histogram(bins = bins) +  # 實際資料之直方圖
-    geom_point()                   # 常態分配曲線
+    geom_histogram(aes(x = x, y = ..density..), bins = bin_count,
+                  binwidth = bin_width, fill = "pink", color = "grey") +  # 實際資料之直方圖
+    geom_point(data = norm, aes(x, y), size = 0.1) # 常態分配曲線
   return(plt)
 }
+
+#助教解
+#checkNormality <- function(x) {
+#  x_seq <- seq(min(x), max(x), by = 0.01)
+#  y <- dnorm(x_seq, mean = mean(x), sd = sd(x))
+#  norm <- data.frame(x = x_seq, y = y)
+  
+#  bins <- as.integer(length(x)^0.57)
+#  plt <- ggplot() +
+#    geom_histogram(mapping = aes(x = x, y = ..density..),
+#                   bins = bins, fill = "pink", color = "grey") +
+#    geom_point(data = norm, mapping = aes(x, y), size = 0.1)
+#  return(plt)
+#}
 
 ###### Do not modify the code below ########
 set.seed(1914)
@@ -85,6 +105,15 @@ Should print out something like：
 set.seed(1)
 ###### Do not modify the code above #######
 # Write your code here
+N <- 500
+G <- rnorm(N)
+P <- rnorm(N, mean = G)
+C <- rnorm(N, mean = G + P)
+df1 <- data.frame(
+  G = G,
+  P = P,
+  C = C
+  )
 
 ###### Do not modify the code below ######
 head(df1)
@@ -108,6 +137,8 @@ head(df1)
 
 ```{r}
 # Write your code here
+source("functions.R")
+plotPairs(df1)
 ```
 
 
@@ -124,9 +155,9 @@ head(df1)
 
 請將 G, P, U, C 這四個因子進行分類 (請在正確的類別填入 G, P, U, C)：
 
-- Confounder: {write your answer here (separated with comma)}
-- Collider: {write your answer here (separated with comma)}
-- Mediator: {write your answer here (separated with comma)}
+- Confounder: {G, U}
+- Collider: {P, C}
+- Mediator: {P}
 
 
 因果結構模擬 (20 分)
@@ -149,7 +180,23 @@ head(df1)
 set.seed(1)
 ###### Do not modify the code above #######
 # Write your code here
+N <- 500
+e_UP <- 1
+e_UC <- 1
+e_GP <- 2
+e_GC <- 0.5
+e_PC <- 2
 
+G <- rnorm(N, mean=0, sd=1)
+U <- rnorm(N, mean=0, sd=1)
+P <- rnorm(N, mean=e_GP*G + e_UP*U, sd=1)
+C <- rnorm(N, mean=e_GC*G + e_PC*P + e_UC*U, sd=1)
+df2 <- data.frame(
+  G = G,
+  U = U,
+  P = P,
+  c = C
+)
 ###### Do not modify the code below ######
 head(df2)
 # Should print out:
